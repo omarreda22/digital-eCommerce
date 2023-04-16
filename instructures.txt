@@ -1,0 +1,12 @@
+- pip install pip pip-tools rav
+- create rav.yaml
+- write installs in rav 
+- rav run installs 
+
+- npm install -D tailwindcss and 'doc'
+
+- static files
+
+- npx tailwindcss init
+
+- npm install flowbite and 'doc'

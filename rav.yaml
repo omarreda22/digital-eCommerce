@@ -1,0 +1,15 @@
+scripts:
+  server:
+    - cd src
+    - py manage.py runserver
+  watch:
+    - npx tailwindcss -i src/core/static-files/tailwind/input.css -o src/core/static-files/tailwind/output.css --watch
+  migrate:
+    - cd src 
+    - py manage.py makemigrations
+    - py manage.py migrate
+  new-admin:
+    - cd src && py manage.py createsuperuser
+  installs:
+    - pip-compile src/requirements/requirements.in -o src/requirements.txt
+    - pip install -r src/requirements.txt

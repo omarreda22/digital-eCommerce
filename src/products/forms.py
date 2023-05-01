@@ -7,7 +7,7 @@ input_css_class = "form-control-custom mb-3"
 class ProductForm(forms.ModelForm):
     class Meta:
         model = Product
-        fields = ['name', 'price']
+        fields = ['image', 'name', 'price']
 
     def clean_name(self):
         name = self.cleaned_data.get('name')

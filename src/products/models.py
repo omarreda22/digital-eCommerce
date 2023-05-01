@@ -11,6 +11,7 @@ class Product(models.Model):
     user = models.ForeignKey(User, default=1, on_delete=models.CASCADE)
     name = models.CharField(max_length=125)
     handle = models.SlugField(null=True, blank=True, unique=True)
+    image = models.ImageField(upload_to="products/", null=True, blank=True)
     price = models.DecimalField(max_digits=10, decimal_places=2, default=9.99) 
     og_price = models.DecimalField(max_digits=10, decimal_places=2, default=9.99)
     strip_price = models.IntegerField(default=999) # price * 100

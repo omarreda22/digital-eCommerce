@@ -13,3 +13,6 @@ scripts:
   installs:
     - pip-compile src/requirements/requirements.in -o src/requirements.txt
     - pip install -r src/requirements.txt
+  static:
+    - cd src
+    - py manage.py collectstatic

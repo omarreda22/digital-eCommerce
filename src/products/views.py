@@ -6,7 +6,7 @@ from .forms import ProductForm
 
 
 def product_create(request):
-    form = ProductForm(request.POST or None)
+    form = ProductForm(request.POST or None, request.FILES or None)
     if form.is_valid():
         obj = form.save(commit=False)
         if request.user.is_authenticated:
@@ -21,7 +21,7 @@ def product_create(request):
 
 
 def product_list(request):
-    products = Product.objects.all()
+    products = Product.objects.all().order_by('-updated')
     return render(request, "pages/product-list.html", {"products":products})
 
 
@@ -36,7 +36,7 @@ def product_detail(request, handle=None):
         is_owner = obj.user == request.user
     
     if is_owner:
-        form = ProductForm(request.POST or None, instance=obj)
+        form = ProductForm(request.POST or None, request.FILES or None, instance=obj)
         if form.is_valid():
             obj = form.save(commit=False)
             obj.save()

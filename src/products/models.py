@@ -1,11 +1,18 @@
+import pathlib
+
 from django.db import models
 from django.conf import settings
 from django.utils import timezone
 from django.utils.text import slugify
 from django.db.models.signals import pre_save
+from django.core.files.storage import FileSystemStorage
+from django.urls import reverse
+
 
 
 User = settings.AUTH_USER_MODEL
+PROTECTED_MEDIA_ROOT = settings.PROTECTED_MEDIA_ROOT
+protected_storage = FileSystemStorage(location=str(PROTECTED_MEDIA_ROOT))
 
 class Product(models.Model):
     user = models.ForeignKey(User, default=1, on_delete=models.CASCADE)
@@ -28,7 +35,7 @@ class Product(models.Model):
         super().save(*args, **kwargs)
 
     def get_absolute_url(self):
-        return f"/products/{self.handle}"
+        return reverse("products:details", kwargs={"handle": self.handle})
 
     def __str__(self):
         return self.name[:20]
@@ -45,3 +52,30 @@ def slug_handle(sender, instance, *args, **kwargs):
             instance.handle = f'{new_slug}-{qs.count()}'
 
 pre_save.connect(slug_handle, sender=Product)
+
+
+def handle_product_images_upload(instance, filename):
+    return f"products/{instance.product.handle}/images/{filename}"
+
+
+class ProductImages(models.Model):
+    product = models.ForeignKey(Product, on_delete=models.CASCADE)
+    file = models.FileField(upload_to=handle_product_images_upload, storage=protected_storage)
+    name = models.CharField(max_length=125, null=True, blank=True)
+    is_free = models.BooleanField(default=False)
+    is_active = models.BooleanField(default=True)
+    timestamp = models.DateTimeField(auto_now_add=True)
+    update = models.DateTimeField(auto_now=True)
+
+    def save(self, *args, **kwargs):
+        if not self.name:
+            self.name = pathlib.Path(self.file.name).name
+
+        super().save(*args, **kwargs)
+
+    @property
+    def get_name(self):
+        return self.name or pathlib.Path(self.file.name).name
+
+    def get_download_url(self):
+        return reverse("products:download", kwargs={"handle":self.product.handle, "pk":self.id})

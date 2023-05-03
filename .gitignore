@@ -13,6 +13,7 @@ __pycache__/
 # static && media
 src/static/
 src/media/
+src/protected/
 
 # Distribution / packaging
 .Python

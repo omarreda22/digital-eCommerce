@@ -32,10 +32,16 @@ class Product(models.Model):
             self.og_price = self.price
             self.strip_price = int(self.price * 100)
             self.proice_changed_timestamp = timezone.now()
+
         super().save(*args, **kwargs)
 
     def get_absolute_url(self):
         return reverse("products:details", kwargs={"handle": self.handle})
+
+    
+    @property
+    def get_manager_url(self):
+        return reverse("products:manager", kwargs={"handle": self.handle})
 
     def __str__(self):
         return self.name[:20]
@@ -67,6 +73,10 @@ class ProductImages(models.Model):
     timestamp = models.DateTimeField(auto_now_add=True)
     update = models.DateTimeField(auto_now=True)
 
+    def __str__(self):
+        return self.product.handle
+    
+
     def save(self, *args, **kwargs):
         if not self.name:
             self.name = pathlib.Path(self.file.name).name
@@ -79,3 +89,4 @@ class ProductImages(models.Model):
 
     def get_download_url(self):
         return reverse("products:download", kwargs={"handle":self.product.handle, "pk":self.id})
+    

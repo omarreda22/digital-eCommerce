@@ -5,7 +5,7 @@ from django.shortcuts import render, redirect, get_object_or_404
 from django.core.exceptions import ValidationError
 
 from .models import Product, ProductImages
-from .forms import ProductForm
+from .forms import ProductForm, ProductAttachmentInlineFormSet
 
 
 def product_create(request):
@@ -15,7 +15,7 @@ def product_create(request):
         if request.user.is_authenticated:
             obj.user = request.user
             obj.save()
-            return redirect('products:create')
+            return redirect(obj.get_manager_url)
         form.add_error(None,"You Must be logged in to create products.")
     context = {
         'form': form
@@ -28,23 +28,46 @@ def product_list(request):
     return render(request, "pages/product-list.html", {"products":products})
 
 
-def product_manage_detail(request, handle=None):
-    obj = get_object_or_404(Product, handle=handle)
-    is_owner= False
+def product_manager(request, handle=None):
+    product = get_object_or_404(Product, handle=handle)
+    attachements = ProductImages.objects.filter(product=product)
+    is_manager = False
     context = {
-        'obj':obj
+        'obj':product
     }
     
     if request.user.is_authenticated:
-        is_owner = obj.user == request.user
+        is_manager = product.user == request.user
     
-    if is_owner:
-        form = ProductForm(request.POST or None, request.FILES or None, instance=obj)
-        if form.is_valid():
-            obj = form.save(commit=False)
-            obj.save()
-        context['form'] = form
-    return render(request, "pages/product-details.html", context)
+    if not is_manager:
+        return HttpResponseBadRequest()
+
+    form = ProductForm(request.POST or None, request.FILES or None, instance=product)
+    formset = ProductAttachmentInlineFormSet(request.POST or None, request.FILES or None, queryset=attachements)
+    if form.is_valid() and formset.is_valid() :
+        obj = form.save(commit=False)
+        obj.save()
+        formset.save(commit=False)
+        for _form in formset:
+            is_delete = _form.cleaned_data.get("DELETE")
+            try:
+                attachement_obj = _form.save(commit=False)
+            except:
+                attachement_obj = None
+
+            if is_delete:
+                if attachement_obj is not None:
+                    if attachement_obj.pk:
+                        attachement_obj.delete()
+            else:
+                if attachement_obj is not None:
+                    attachement_obj.product = obj
+                    attachement_obj.save()
+        return redirect(obj.get_manager_url)
+    
+    context['form'] = form
+    context['formset'] = formset
+    return render(request, "pages/product-manager.html", context)
 
 
 def product_detail(request, handle=None):

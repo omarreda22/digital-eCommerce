@@ -1,0 +1,64 @@
+{% extends 'base.html' %}
+{% block head_title %}Create Product{% endblock %}
+
+{% block content %}
+<form class="space-y-3"  method="POST" action="." enctype="multipart/form-data">
+    {% csrf_token %}
+    <p class="text-3xl">Product Details</p>
+    <div class="space-y-3 mt-3">
+        {{form.as_p}}
+    <div>
+        <br>
+    <hr>
+    <p class="text-3xl mt-5">Product Attachements</p>
+    <div>
+        {{formset.management_form}}
+        <div class="space-y-6 mt-3 " id="attachements">
+            {% for form in formset %}
+            <div> 
+                {{form.as_p}}
+            </div>
+            {% endfor %}
+        </div>
+    <div>
+                
+    <div class="text-center">
+    <button id="add-attachement-btn" style="width:40%" class="text-white bg-gradient-to-r from-cyan-500 to-blue-500 hover:bg-gradient-to-bl focus:ring-4 focus:outline-none focus:ring-cyan-300 dark:focus:ring-cyan-800 font-medium rounded-lg text-sm px-5 py-2.5 text-center mr-2 mb-2">Add Attachements</button>
+    <button type="submit" class="btn-submit" style="width:40%">Save</button>
+    </div>
+</form>
+
+<div class="hidden" id="blank-form">
+    {{formset.empty_form}}
+</div>
+
+<script>
+    const blankFormEl = document.querySelector("#blank-form")
+    const addAttachementBtn = document.querySelector("#add-attachement-btn")
+    const attachementsContainer = document.querySelector('#attachements')
+    const managementFormInputEl = document.querySelector('#id_form-TOTAL_FORMS')
+
+    const cloneBlankForm = function(){
+        if(blankFormEl){
+            const newBlankForm = blankFormEl.cloneNode(true)
+            const totalFormsNumber = parseInt(managementFormInputEl.value)
+            var formRegex = new RegExp(`__prefix__`, 'g');
+            newBlankForm.innerHTML = newBlankForm.innerHTML.replace(formRegex, totalFormsNumber)
+            managementFormInputEl.value = totalFormsNumber + 1
+            newBlankForm.classList.add("attachment-form")
+            newBlankForm.classList.remove("hidden")
+            newBlankForm.removeAttribute("id")
+            return newBlankForm
+        }
+    }
+
+    addAttachementBtn.addEventListener('click', (e)=>{
+        e.preventDefault()
+        const newForm = cloneBlankForm()
+        attachementsContainer.appendChild(newForm)
+    })
+    
+
+</script>
+
+{% endblock content %}

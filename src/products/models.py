@@ -1,4 +1,5 @@
 import pathlib
+import stripe 
 
 from django.db import models
 from django.conf import settings
@@ -7,7 +8,11 @@ from django.utils.text import slugify
 from django.db.models.signals import pre_save
 from django.core.files.storage import FileSystemStorage
 from django.urls import reverse
+from core.env import config
 
+
+STRIPE_SECRET_KEY = config("STRIP_SECRET_KEY", default=None)
+stripe.api_key = STRIPE_SECRET_KEY
 
 
 User = settings.AUTH_USER_MODEL
@@ -26,12 +31,35 @@ class Product(models.Model):
     timestamp = models.DateTimeField(auto_now_add=True)
     updated = models.DateTimeField(auto_now=True)
 
+    stripe_product_id = models.CharField(max_length=250, blank=True, null=True)
+    stripe_price_id = models.CharField(max_length=250, blank=True, null=True)
+
     def save(self, *args, **kwargs):
+        if self.name:
+            stripe_product_r = stripe.Product.create(name=self.name)
+            self.stripe_product_id = stripe_product_r.id
+
+        if not self.stripe_price_id:
+            self.strip_price = int(self.price * 100)
+            stripe_price_obj = stripe.Price.create(
+                product = self.stripe_product_id,
+                unit_amount = self.strip_price,
+                currency="usd"
+            )
+            self.stripe_price_id=stripe_price_obj.id
+
         if self.price != self.og_price:
             # price Changed
             self.og_price = self.price
             self.strip_price = int(self.price * 100)
             self.proice_changed_timestamp = timezone.now()
+            if self.stripe_product_id:
+                stripe_price_obj = stripe.Price.create(
+                    product = self.stripe_product_id,
+                    unit_amount = self.strip_price,
+                    currency="usd"
+                )
+                self.stripe_price_id = stripe_price_obj.id
 
         super().save(*args, **kwargs)
 

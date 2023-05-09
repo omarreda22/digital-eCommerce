@@ -7,7 +7,8 @@ from .views import home_view
 urlpatterns = [
     path('admin/', admin.site.urls),
     path('', home_view),
-    path('products/', include('products.urls', namespace='products'))
+    path('products/', include('products.urls', namespace='products')),
+    path('order/', include('orders.urls', namespace='orders'))
 ]
 
 if settings.DEBUG:

@@ -74,10 +74,11 @@ def product_detail(request, handle=None):
     obj = get_object_or_404(Product, handle=handle)
     # attachements = ProductImages.objects.filter(product=obj)
     attachements= obj.productimages_set.all()
+    user = request.user
     is_owner= False
     
     if request.user.is_authenticated:
-        is_owner = True
+        is_owner = user.order_set.all().filter(product=obj, completed=True).exists()
     
     context = {
         'obj':obj,

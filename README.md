@@ -7,3 +7,4 @@ eCommerce Web App with Python and Serverless Postgres (neon)
 - TailwindCSS/Flowbite
 - Neon - Serverless Postgres
 - Payment Processing with Stripe
+- Docker

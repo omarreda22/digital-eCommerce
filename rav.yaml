@@ -16,3 +16,5 @@ scripts:
   static:
     - cd src
     - py manage.py collectstatic
+  build: docker build -f Dockerfile -t micro-ecommerce .
+  docker_prod: docker run --env-file .env -p 8001:8000 --rm --name micro-ecommerce-dev -it micro-ecommerce 
